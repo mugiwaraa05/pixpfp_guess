@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pfp Guess Who?</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --primary: #f72585; /* Vibrant pink */
+    --primary-light: #ff4d9e;
+    --primary-dark: #e5177e;
+    --success: #4cc9f0;
+    --success-light: #6fd7f5;
+    --error: #f72585;
+    --error-light: #ff4d9e;
+    --bg-start: #000000; /* Black */
+    --bg-end: #1a001a; /* Dark purple-pink */
+    --bg: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+    --bg-dark: #1a1a1a;
+    --text: #ffffff;
+    --text-light: #cccccc;
+    --white: #ffffff;
+    --shadow: 0 4px 20px rgba(0,0,0,0.3);
+    --shadow-hover: 0 8px 30px rgba(247, 37, 133, 0.3);
+}
+
+* {
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.5;
+    background-attachment: fixed;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 1.5rem;
+    position: relative;
+    width: 100%;
+}
+
+h1 {
+    color: var(--white);
+    text-shadow: 0 2px 10px rgba(247, 37, 133, 0.5);
+    margin: 0 0 0.5rem 0;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    color: var(--text-light);
+    margin: 0;
+    font-weight: 400;
+    font-size: 1rem;
+}
+
+.game-area {
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(247, 37, 133, 0.2);
+}
+
+.game-area::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary), var(--success));
+}
+
+.avatar-display {
+    margin: 1.5rem auto;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    border: 6px solid rgba(247, 37, 133, 0.3);
+    background: var(--bg-dark);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: all 0.3s ease;
+}
+
+.avatar-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(247, 37, 133, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.avatar-display:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(247, 37, 133, 0.3);
+    border-color: rgba(247, 37, 133, 0.5);
+}
+
+.avatar-display:hover::before {
+    opacity: 1;
+}
+
+.avatar-display img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.avatar-display:hover img {
+    transform: scale(1.1);
+}
+
+.options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.option {
+    padding: 1.2rem 1rem;
+    background: rgba(40, 40, 40, 0.9);
+    border: 2px solid rgba(247, 37, 133, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--white);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.option:hover {
+    background: rgba(247, 37, 133, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(247, 37, 133, 0.3);
+    border-color: var(--primary);
+}
+
+.option.correct {
+    background-color: var(--success);
+    color: white;
+    border-color: var(--success);
+    animation: pulse 0.6s;
+    box-shadow: 0 5px 20px rgba(76, 201, 240, 0.3);
+}
+
+.option.incorrect {
+    background-color: var(--error);
+    color: white;
+    border-color: var(--error);
+    animation: shake 0.5s;
+    box-shadow: 0 5px 20px rgba(247, 37, 133, 0.3);
+}
+
+.progress-container {
+    width: 100%;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--success));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.progress-text {
+    position: absolute;
+    right: 0;
+    top: -25px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.round-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.question-text {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.results {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.result-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.result-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(247, 37, 133, 0.3);
+}
+
+.result-avatar.correct {
+    border: 4px solid var(--success);
+    box-shadow: 0 5px 25px rgba(76, 201, 240, 0.7);
+    filter: 
+        brightness(1.15) /* Makes image brighter */
+        drop-shadow(0 0 8px rgba(76, 201, 240, 0.6)); /* Adds glow */
+    transform: scale(1.02); /* Slightly larger */
+    opacity: 1 !important; /* Override any opacity */
+}
+
+.result-avatar.incorrect {
+    opacity: 0.7;
+    filter: grayscale(70%) brightness(1.1);
+    border: 4px solid var(--error);
+    box-shadow: 0 5px 20px rgba(247, 37, 133, 0.2);
+}
+
+.result-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.result-avatar:hover img {
+    transform: scale(1.1);
+}
+
+.result-username {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    backdrop-filter: blur(2px);
+}
+
+.score-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 1rem 0;
+    color: var(--white);
+}
+
+.score-value {
+    color: var(--primary);
+    font-size: 2rem;
+}
+
+.btn {
+    padding: 1rem 2rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0.5rem;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(247, 37, 133, 0.5);
+    background: var(--primary-light);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    box-shadow: none;
+}
+
+.btn-secondary:hover {
+    background: rgba(247, 37, 133, 0.1);
+}
+.no-screenshot {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+}
+
+.screenshot-hide {
+    display: none !important;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: var(--primary);
+    opacity: 0;
+    animation: confetti-fall 3s ease-in-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(1000px) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .game-area {
+        padding: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .options {
+        grid-template-columns: 1fr;
+    }
+    
+    .avatar-display {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .result-avatar {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+/* Fix for html2canvas background rendering */
+#results-screen {
+    background: linear-gradient(135deg, #000000 0%, #1a001a 100%);
+    background-attachment: fixed;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Guess Who?</h1>
+        <p class="subtitle">Match the Pixpfp to the correct username</p>
+    </header>
+    
+    <div id="game-screen" class="game-area">
+        <div class="progress-container">
+            <div class="progress-text" id="progress-text">1/6</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        
+        <div class="round-display" id="round-display">Round 1 of 6</div>
+        <p class="question-text">Who does this Pixpfp belong to?</p>
+        
+        <div class="avatar-display">
+            <img id="current-avatar" src="" alt="Avatar to guess" class="fade-in">
+        </div>
+        
+        <div class="options" id="options-container"></div>
+    </div>
+    
+    <div id="results-screen" class="game-area" style="display: none;">
+        <h2>Your Results</h2>
+        <div class="score-display">
+            You scored <span class="score-value" id="score-value">0</span> out of <span id="total-rounds">6</span>!
+        </div>
+        
+        <div id="result-message"></div>
+        
+        <div class="results" id="results-container"></div>
+        
+        <div class="btn-group">
+            <button id="play-again-btn" class="btn">Play Again</button>
+            <button id="screenshot-btn" class="btn btn-secondary">Download Results</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+// Game data
+const avatarUsernameMap =  {
+  "1001240470531346563": "cvrsead",
+  "1006047421794631750": "hisan0800",
+  "1011299416747016312": "hokage___",
+  "1011601844113526834": "0xbase",
+  "1012532120029249537": "u_anderson",
+  "1013010667177005086": ".disduck",
+  "1016343960505028618": "rigby01.",
+  "1018155812381794385": "noobcall",
+  "1018243864395526195": "adepeju1373",
+  "1018493975767818300": "johannnlovalety4",
+  "1020657312660197378": "banny18.",
+  "1024319884907261992": "pumpkidss",
+  "1032630095174717491": "hung01295",
+  "1033096625549221939": "bzadm1n",
+  "1033250046520602624": "degoat7531",
+  "1039190750111469652": "hacknetic",
+  "1052390012387332227": "titansolos",
+  "1055155200094109756": "dora_lsk",
+  "1056837994729967626": "marcelbarbeault",
+  "1059912181241618604": "maxisstillhim",
+  "1065783290528796692": "zakrrs",
+  "1066044345880416306": "bullrunner23",
+  "1070024503276601405": "sayangxbt",
+  "1071176875042406400": "mikemymind_",
+  "1071799890184781989": "tdayz.",
+  "1089179618461880330": "shirogane_7",
+  "1100690343478968381": ".f4m4s",
+  "1106002673662165003": "kb_237",
+  "1106288487440859186": "zxcqqw",
+  "1107683096070979585": "inwhics",
+  "1108727574709928017": "blockboiy",
+  "1111936620736811019": "0xagent17",
+  "1124344826868011118": "vibeman_247",
+  "1129459649066840178": "pixnmsanvm",
+  "1132920409688387614": "mzstar_",
+  "1135212108733227148": "grimmjoww.eth",
+  "1154123178289934407": "angelverse_x",
+  "1157319328635564143": "inv_bj",
+  "1159745605145473036": "arbdhulwardhud69",
+  "1163330056924430346": "crystalclear5",
+  "1181371580161470499": "st.jaygarciasaturn",
+  "1186980156003332119": "amstarart",
+  "1193359204849815794": "kadafer.hidup",
+  "1198409253661184033": "godwin200614",
+  "1198446138584469514": "crypto_ruki",
+  "1198786935792091257": "mabel2304",
+  "1200054068379406398": "primotivo.",
+  "1201961683581677650": "daviddokotri",
+  "1203771552269602848": "melophile0646",
+  "1204723287649943574": "dybalap",
+  "1204791643203436614": "t0p_b0yy",
+  "1205567187486515271": "fudaa",
+  "1206136186863620110": "jon602",
+  "1215771701195964558": "gabii_awee",
+  "1216295400076738580": "sirtee1209",
+  "1220387480478416918": "flamez_30",
+  "1222297119222665276": "trafalgarlaw300",
+  "1224561902621823067": "chhayank_bhutra",
+  "1226283003039449208": "tireddex",
+  "1239461877029933147": "cryptoanre",
+  "1241277492459999335": "annt3ch",
+  "1242005578142711838": "web3_tobzz",
+  "1246257858291699712": "zoiko777",
+  "1273245194858397761": "fleeceek",
+  "1281955829368619008": "second_______",
+  "1284647074519973891": "sophyaani1",
+  "1291617374591520769": "alyssaonchain",
+  "1295874583630446603": "jison_almighty",
+  "130012233014050816": "czyzu6135",
+  "1300555156529872906": "bgfadhh",
+  "1302939974655545384": "mclaire_web3",
+  "1304448095198908447": "taiwo___",
+  "1309025488890494976": "hajisubur_9",
+  "1312859148710314075": "sunex_sam",
+  "1318176283435466812": "cryptomeii",
+  "1329816250003619911": "whiteangle_23",
+  "1336578914545565756": "dakotaerza",
+  "1341250232989646858": "ctundertaker",
+  "1344962622902112268": "aniutah93",
+  "1363808776984985691": "notaveragebarbecue",
+  "181825235513769986": "niknurenberg",
+  "197647312649060353": "godblessme_.",
+  "213051796350828544": "0xkeet",
+  "235525950064951296": "advaith.",
+  "253851634264702976": "eternxvm",
+  "262281836431015936": "orionwithl",
+  "262338428954214410": "100xyan",
+  "271360981605679115": "mylittlesirsh",
+  "281170182247022592": "ov4rlxrd",
+  "290201389370441729": ".caben",
+  "294881617422319616": "mark1ch.",
+  "295575167671992320": "takadajke",
+  "295938421636071424": "brainheadshit",
+  "296127125704933379": "frostnova_",
+  "298122325621211137": "diednoreason",
+  "337574118817923072": ".selfmedicatedd",
+  "344464748051693568": "mryavascan",
+  "346561828282826752": "cloutherr",
+  "348837031067254784": "lars0015",
+  "351029767438467073": "ozzgrr",
+  "351586507934662657": "kiira7094",
+  "352196779514527745": "_konnaris",
+  "366372542463606825": "pepenz",
+  "368402714196967425": "m4lka",
+  "368977664775815178": "freshlettuce.",
+  "375327885776650240": "weeklang",
+  "387608180126908428": "axlecrack",
+  "387917626250362881": "shadow.sparrow",
+  "391436373862776842": "marsss3399",
+  "394149086405591051": "cp02_",
+  "402119362468642817": "dragonsz",
+  "404593889446461451": "yohamakusa",
+  "408837092953554964": "zoldyck2301",
+  "414463255025680394": "duskiesoul",
+  "423671703957405706": "tolkien41",
+  "434763121509269505": "sonyarise",
+  "437697317588697090": "plastiquekzn",
+  "443792809590390786": "guclupriz",
+  "445190905960595456": "goldcucumber.",
+  "448355938328379392": "felixovich",
+  "452396162000093194": "johnleslie",
+  "453601117570596865": "d1ol",
+  "460740259534209035": "zahar0n",
+  "466279733181677578": "wdc7z",
+  "469503652361666561": "shushhh2201",
+  "472734392876531712": "dyxa_",
+  "473361181357375490": "stepaks675",
+  "473422086065487878": "alexmaletov",
+  "475231102995398656": "sangwook06",
+  "478205183520931851": "maje53",
+  "479430464529235970": "irina096190",
+  "481785078112845835": "steadystonik",
+  "481936446987698186": "enemyofsociety0",
+  "483184610306555919": "xsirys",
+  "489854281512648725": "maximillianodrioni",
+  "496060132715921439": "yinger000",
+  "514138051572924447": "moistcoco",
+  "517746062828765214": "baykemal",
+  "520670307951050762": "f0lkz",
+  "526241294889254917": "creamceline",
+  "526504229289066518": "0xpiccolleto",
+  "526728849086480385": "sayitstrue",
+  "527397503671468042": "memuat",
+  "550479440170319883": "fliperamacripto",
+  "560507836958769157": "marchiii",
+  "562649631453085697": "ashyt7344",
+  "577384113657610250": "tulenkaaa",
+  "593002559464013845": "0xliebert711",
+  "594442613101428737": "maituong",
+  "605311557039030282": ".ifol",
+  "606566270338596867": "realsir",
+  "609377698963259454": "quangquang.eth",
+  "612921531257061377": "unknownabyss.",
+  "636967619559424000": "rnoozy",
+  "648310207361056768": "lehson1308",
+  "648631251279937547": "killer0102",
+  "649385409947893780": "mvkise",
+  "677488139258036225": "hamatoyoshii.",
+  "678694509327941653": "abhi__web3",
+  "679863111200538681": "heyflo_",
+  "693765888134086737": "aarcy.willow",
+  "694177788642459668": "mussed.",
+  "695530726191530065": "sqw3zzy",
+  "699187145591750666": "cruisethegoat",
+  "700320247835787384": "alina_mal1na",
+  "706629392113074298": "serenadee",
+  "707837560566579221": "shobe_xbt",
+  "725384722796249118": "dhruvv.zk",
+  "730139143098859601": "goodwaitik",
+  "734987346352537643": "ahmad_zhd",
+  "739773332496580689": "frio99",
+  "743575027437404221": "ozymandias.lens",
+  "746755970868445185": "professor_xn",
+  "747953337663619216": "lovecity0088",
+  "755528713806020698": "dabsdabs",
+  "755738093906165852": "mekoyaki",
+  "760165014543007766": "miley_nguyen",
+  "762773582887387227": "juice51231",
+  "765189948697214977": "serp00",
+  "768484472660033558": "_kate_lv",
+  "772527404090261514": "valakaspwnz",
+  "777396600930172972": "tabgnuh",
+  "780405095212122123": "johnphunk",
+  "791740701603790898": "light.dyk",
+  "797174894562508861": "lubudebotton",
+  "798336993904820255": "jenny.jenny123",
+  "806353693829890068": "squall6872",
+  "807774722246705164": "cercoo",
+  "817429219247128637": "morealwa",
+  "821523341113819207": "thisguyy69",
+  "823976787935363164": "papito_dele",
+  "827104216715755530": "g9gbobzy",
+  "830417976045207622": "_alhassanh",
+  "833180677758386207": "nels3090",
+  "833353090400911362": "killforcookies9999",
+  "835648963981475880": "ralphisme",
+  "837217238783229974": "grandoloye",
+  "837299649055555625": "kaachii",
+  "839927807571394570": "0xshalen",
+  "844578413594279946": "tiger1102",
+  "845166002638946324": "rc4rlx",
+  "845350221693321256": "cryptokella",
+  "845914507351687208": "timx1378",
+  "850328141603405824": "zakehowell",
+  "853733874890440714": "jaeheirys",
+  "854166265512984577": "pumatheuma",
+  "855739277290897448": "crptonutslover",
+  "857722459830222879": "genozz",
+  "859767176097038336": "web3sage",
+  "862579573929672716": "swilla66",
+  "874899230794338336": "shanksbtc",
+  "876975150749339731": "theshinningboy",
+  "877424846915657738": "dante_q1",
+  "879001374648586281": "ariyanjoy3595",
+  "879003932469383178": "0xisawa",
+  "883762495637041152": "joh3729",
+  "884390467373002782": "pujasharma9929",
+  "885531917024391198": "amarameta1",
+  "887691606579351552": "baik1157",
+  "891369073005449236": "saniaaa",
+  "893777383369347082": "sickodeno",
+  "895471848865804348": "honeymoneyeth",
+  "897440306612568064": "arajean",
+  "898062176454082572": "mr.mnm.",
+  "901082243764723753": "dimassawal",
+  "904687879966560277": "0xchixxey_",
+  "905228584359170100": "whomaz_",
+  "905437821752442940": "cupang.",
+  "906259614625050625": "kenakon200",
+  "908739152709820436": "jacobigbrother",
+  "909889982162952193": "olyvia7135",
+  "910542223114919976": "willox3227",
+  "912587636953215006": "ismo0407",
+  "914727508396613672": "gyeouri2",
+  "916211979750875217": "jealousy9999",
+  "919128471094067210": "._.cookiess",
+  "919216253493706752": "seyitheplug",
+  "920283694147702784": "breezyjpg",
+  "920810565327269918": "_thriver",
+  "922188970236997663": "anstapx",
+  "922520126224482324": "peaky8149",
+  "923173869597130752": "ransen9354",
+  "923875118776733756": "nftgal",
+  "927520411896410142": "_bhanks",
+  "927714438092574730": "fidesire",
+  "928610578254143519": "0xbunny",
+  "931962788702720100": "oluseyix",
+  "932136226956394566": "0xmanel",
+  "936283553933692928": "spicycandy01",
+  "936494472575979570": "giftkindness",
+  "938671444378931241": "boss_tmg",
+  "941417066769035335": "mic_kky",
+  "944497243166236715": "jacklin08",
+  "946439852180791326": "adlyzee",
+  "952165948297740339": "ui1200",
+  "953247410363183145": "biggbotex_xx",
+  "954937335718477926": "oxhilee",
+  "956606313872379914": "teeuzor",
+  "958386559516803103": "sunfl0wer09",
+  "958502808989081660": "wtf.4uk",
+  "962712812289949706": "vikktorrrre",
+  "965971021226205215": "funkgirl",
+  "966339962645676113": "grejk",
+  "969018864929243186": "microfinanali",
+  "970256812270059550": "codart0014",
+  "975647504416776192": "timmy_turnes",
+  "976364922139189328": "usman331",
+  "979122715409645630": "web3tug",
+  "979370552668065882": "ensp1re",
+  "981279262952804422": "gerin55",
+  "983577530650984508": "kobong1365",
+  "984876691912536155": "smart6609",
+  "985205011833307175": "abdullahi_wolf",
+  "987012335833063504": "onthaleak",
+  "989580421979320340": "0xhirono",
+  "991839398918373447": "neovault",
+  "992474118362517534": "thewizardee",
+  "992656160601686087": ".mikeyboomin",
+  "996501778059231404": "lola_jo",
+  "999359243700412437": "valze7349"
+} ;
+
+// Game state
+let currentRound = 0, score = 0, totalRounds = 6;
+const gameHistory = [], selectedAvatars = [], allAvatarIds = Object.keys(avatarUsernameMap);
+
+// DOM elements
+const gameScreen = document.getElementById('game-screen');
+const resultsScreen = document.getElementById('results-screen');
+const currentAvatar = document.getElementById('current-avatar');
+const optionsContainer = document.getElementById('options-container');
+const resultsContainer = document.getElementById('results-container');
+const roundDisplay = document.getElementById('round-display');
+const progressText = document.getElementById('progress-text');
+const progressFill = document.getElementById('progress-fill');
+const scoreValue = document.getElementById('score-value');
+const totalRoundsDisplay = document.getElementById('total-rounds');
+const resultMessage = document.getElementById('result-message');
+const playAgainBtn = document.getElementById('play-again-btn');
+const screenshotBtn = document.getElementById('screenshot-btn');
+
+// Initialize the game
+function initGame() {
+    currentRound = score = 0;
+    gameHistory.length = 0;
+    selectedAvatars.length = 0;
+    
+    // Select random unique avatars for the game
+    while (selectedAvatars.length < totalRounds) {
+        const randomId = allAvatarIds[Math.floor(Math.random() * allAvatarIds.length)];
+        if (!selectedAvatars.includes(randomId)) selectedAvatars.push(randomId);
+    }
+    
+    startRound();
+}
+
+// Start a new round
+function startRound() {
+    if (currentRound >= totalRounds) return endGame();
+    
+    // Update progress indicators
+    roundDisplay.textContent = `Round ${currentRound+1} of ${totalRounds}`;
+    progressText.textContent = `${currentRound+1}/${totalRounds}`;
+    progressFill.style.width = `${(currentRound / totalRounds) * 100}%`;
+    
+    // Set up the avatar to guess
+    const avatarId = selectedAvatars[currentRound];
+    currentAvatar.src = `Avatars/${avatarId}.webp`;
+    currentAvatar.onerror = () => {
+        currentAvatar.src = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='${encodeURIComponent('#f72585')}'/><text x='50' y='60' font-size='40' text-anchor='middle' fill='white'>${avatarUsernameMap[avatarId][0]}</text></svg>`;
+    };
+    
+    // Generate answer options
+    const correctUsername = avatarUsernameMap[avatarId];
+    const options = [correctUsername];
+    
+    // Add 2 incorrect options
+    while (options.length < 3) {
+        const randomUsername = avatarUsernameMap[allAvatarIds[Math.floor(Math.random() * allAvatarIds.length)]];
+        if (!options.includes(randomUsername)) options.push(randomUsername);
+    }
+    
+    // Shuffle options
+    options.sort(() => Math.random() - 0.5);
+    
+    // Create option buttons
+    optionsContainer.innerHTML = '';
+    options.forEach(option => {
+        const btn = document.createElement('div');
+        btn.className = 'option fade-in';
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, correctUsername, avatarId);
+        optionsContainer.appendChild(btn);
+    });
+}
+
+// Check the selected answer
+function checkAnswer(selected, correct, avatarId) {
+    const isCorrect = selected === correct;
+    
+    // Disable all options and highlight correct/incorrect
+    document.querySelectorAll('.option').forEach(btn => {
+        btn.style.pointerEvents = 'none';
+        if (btn.textContent === correct) {
+            btn.classList.add('correct');
+        } else if (btn.textContent === selected && !isCorrect) {
+            btn.classList.add('incorrect');
+        }
+    });
+    
+    // Update score if correct
+    if (isCorrect) {
+        score++;
+        createConfetti();
+    }
+    
+    // Record the result
+    gameHistory.push({ avatarId, correct: isCorrect });
+    
+    // Move to next round after a delay
+    setTimeout(() => {
+        currentRound++;
+        startRound();
+    }, 1500);
+}
+
+// End the game and show results
+function endGame() {
+    gameScreen.style.display = 'none';
+    resultsScreen.style.display = 'block';
+    progressFill.style.width = '100%';
+    
+    // Update score display
+    scoreValue.textContent = score;
+    totalRoundsDisplay.textContent = totalRounds;
+    
+    // Set result message based on performance
+    const percentage = Math.round((score / totalRounds) * 100);
+    let message = '';
+    
+    if (percentage === 100) {
+        message = 'Perfect score! I think you should touch some grass 🦗';
+    } else if (percentage >= 80) {
+        message = 'Great job! You are way smarter than Wylo 👏';
+    } else if (percentage >= 60) {
+        message = 'Not bad! Prove harder G  👍';
+    } else {
+        message = 'Ngl Unfortunately Wylo is smarter than you and I am really sorry 💀';
+    }
+    
+    resultMessage.textContent = message;
+    
+    // Show all results
+    resultsContainer.innerHTML = '';
+    gameHistory.forEach((r, index) => {
+        const div = document.createElement('div');
+        div.className = `result-avatar ${r.correct ? 'correct' : 'incorrect'} fade-in`;
+        div.style.animationDelay = `${index * 0.1}s`;
+        div.innerHTML = `
+            <img src="Avatars/${r.avatarId}.webp" 
+                 onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'${r.correct ? '%234cc9f0' : '%23f72585'}\'/><text x=\'50\' y=\'60\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\'>${avatarUsernameMap[r.avatarId][0]}</text></svg>'">
+            <div class="result-username">${avatarUsernameMap[r.avatarId]}</div>
+        `;
+        resultsContainer.appendChild(div);
+    });
+}
+
+// Create confetti effect for correct answers
+function createConfetti() {
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+        confetti.style.width = `${Math.random() * 8 + 4}px`;
+        confetti.style.height = `${Math.random() * 8 + 4}px`;
+        confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+        confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+        document.body.appendChild(confetti);
+        
+        // Remove confetti after animation
+        setTimeout(() => {
+            confetti.remove();
+        }, 3000);
+    }
+}
+
+// Event listeners
+playAgainBtn.onclick = () => {
+    resultsScreen.style.display = 'none';
+    gameScreen.style.display = 'block';
+    initGame();
+};
+
+screenshotBtn.onclick = () => {
+    // Hide buttons before taking screenshot
+    const buttonsToHide = document.querySelectorAll('.btn-group button, .btn-group');
+    buttonsToHide.forEach(btn => {
+        btn.classList.add('screenshot-hide');
+    });
+
+    html2canvas(resultsScreen, {
+        backgroundColor: null,
+        scale: 2,
+        ignoreElements: (element) => {
+            return element.classList.contains('screenshot-hide');
+        }
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'avatar-guess-who-results.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        
+        // Show buttons again after screenshot
+        buttonsToHide.forEach(btn => {
+            btn.classList.remove('screenshot-hide');
+        });
+    });
+};
+
+// Initialize the game when page loads
+window.onload = initGame;
+</script>
+</body>
+</html>
